@@ -41,6 +41,15 @@ setup(
     # Comment out this line to prevent the files from being packaged with your software
     include_package_data=True,
 
+    install_requires=[
+        "numpy",
+        "pandas",
+        "dash>=2.0.0",
+        "dash_html_components>=2.0.0",
+        "plotly>=5.3.1",
+        "pickle5>=0.0.11",
+        "dash_core_components>=2.0.0"],
+
     # Allows `setup.py test` to work correctly with pytest
     setup_requires=[] + pytest_runner,
 
