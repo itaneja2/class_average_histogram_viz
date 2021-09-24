@@ -226,7 +226,7 @@ def update_bar_chart(clickData, contents, filename, cluster_num, edge_corr_str):
 
     all_imgs_cluster_c = []
     for community_img in cluster_community:
-        all_imgs_cluster_c.append("-".join(str(x) for x in community_img))
+        all_imgs_cluster_c.append("-".join(str(x) for x in sorted(community_img)))
     
     plot_df = pd.DataFrame({'x': x, 'y': y, 'ref_img': cluster_ref_img, 'all_img': all_imgs_cluster_c})
 
