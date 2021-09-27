@@ -218,7 +218,7 @@ def update_bar_chart(clickData, contents, filename, cluster_num, edge_corr_str):
     cluster_community = hist_data_dict[edge_corr_str][0][cluster_num][idx]
     cluster_community_count = hist_data_dict[edge_corr_str][3][cluster_num][idx]
     cluster_ref_img = hist_data_dict[edge_corr_str][4][cluster_num][idx]
-    cluster_norm_dist = hist_data_dict[edge_corr_str][5][cluster_num][idx]
+    cluster_max_community_weight = hist_data_dict[edge_corr_str][5][cluster_num][idx]
     
  
     y=cluster_community_count/(np.sum(cluster_community_count))
@@ -236,7 +236,7 @@ def update_bar_chart(clickData, contents, filename, cluster_num, edge_corr_str):
     for img in cluster_ref_img:
         ref_img_list.append('%s/%s.png' % (ref_img_loc, str(int(img))))
     
-    plot_title = 'Normalized Community Distance = %s' % cluster_norm_dist    
+    plot_title = 'Maximum Community Weight = %s' % str(cluster_max_community_weight) 
 
     fig = px.bar(plot_df, x='x', y='y',
                 hover_data=['ref_img', 'all_img'])
