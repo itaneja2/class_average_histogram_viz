@@ -15,7 +15,7 @@ def load_obj(name):
         return pickle.load(f)
 
 
-def get_sil_score_df(hist_data_dict, cluster_num, edge_corr_str):
+'''def get_sil_score_df(hist_data_dict, cluster_num, edge_corr_str):
         
     threshold_data = hist_data_dict[edge_corr_str][1][cluster_num]
     sil_data = hist_data_dict[edge_corr_str][2][cluster_num]
@@ -33,8 +33,24 @@ def get_sil_score_df(hist_data_dict, cluster_num, edge_corr_str):
         else:
             optimal_community_list.append('non-optimal')
             
-    return(pd.DataFrame({'idx': idx, 'threshold': threshold_data, 'sil_score': sil_data, 'optimal_community': optimal_community_list}))
-           
+    return(pd.DataFrame({'idx': idx, 'threshold': threshold_data, 'sil_score': sil_data, 'optimal_community': optimal_community_list}))'''
+
+def get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str):
+        
+    threshold_data = hist_data_dict[edge_corr_str][1][cluster_num]
+    dataset_community_dist_data = hist_data_dict[edge_corr_str][2][cluster_num]
+    idx = range(0,len(threshold_data))
+    optimal_community_num = hist_data_dict[edge_corr_str][-1][cluster_num]
+     
+    optimal_community_list = []
+    for i in idx:
+        if i == optimal_community_num:
+            optimal_community_list.append('optimal')
+        else:
+            optimal_community_list.append('non-optimal')
+            
+    return(pd.DataFrame({'idx': idx, 'threshold': threshold_data, 'mean_dist': dataset_community_dist_data, 'optimal_community': optimal_community_list}))
+
            
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -184,17 +200,17 @@ def update_edge_corr_options(contents, filename):
 def update_scatter(contents, filename, cluster_num, edge_corr_str):
                                 
     hist_data_dict, filepath_name = get_hist_dict(contents, filename)
-    sil_score_df = get_sil_score_df(hist_data_dict, cluster_num, edge_corr_str)
+    dataset_community_dist_df = get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str)
     
-    fig = px.scatter(x=sil_score_df['threshold'],
-            y=sil_score_df['sil_score'],
-            color=sil_score_df['optimal_community'],
-            hover_name=sil_score_df['idx']
+    fig = px.scatter(x=dataset_community_dist_df['threshold'],
+            y=dataset_community_dist_df['mean_dist'],
+            color=dataset_community_dist_df['optimal_community'],
+            hover_name=dataset_community_dist_df['idx']
             )
 
-    fig.update_traces(customdata=sil_score_df['idx'])
+    fig.update_traces(customdata=dataset_community_dist_df['idx'])
 
-    fig.update_layout(yaxis_title = 'Silhouette Score',
+    fig.update_layout(yaxis_title = 'Mean Distance',
                       xaxis_title = 'Distance Threshold',
                       hovermode='closest',
                       margin={'l': 0, 'b': 10, 't': 40, 'r': 0})
