@@ -33,7 +33,7 @@ Web application to visualize particle count distributions of distinct views from
 	
 2.  Uploading files to the web application
 
-Upload the file `filepath.txt` to the web application. 
+	Upload the file `filepath.txt` to the web application. 
 
 ###### File Structure
     50S_ribosome_summary_mirror=1_scale=1

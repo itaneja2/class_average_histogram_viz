@@ -41,16 +41,36 @@ def get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str):
     dataset_community_dist_data = hist_data_dict[edge_corr_str][2][cluster_num]
     idx = range(0,len(threshold_data))
     optimal_community_num = hist_data_dict[edge_corr_str][-1][cluster_num]
-     
+
+    dataset_community_dist_data = np.array(dataset_community_dist_data)
+    threshold_data = np.array(threshold_data)
+
+    relevant_idx = np.where(dataset_community_dist_data < 1)
+
+    dataset_community_dist_data = dataset_community_dist_data[relevant_idx]
+    threshold_data = threshold_data[relevant_idx]
+    dataset_community_dist_data = list(dataset_community_dist_data)
+    threshold_data = list(threshold_data)
+ 
     optimal_community_list = []
     for i in idx:
         if i == optimal_community_num:
             optimal_community_list.append('optimal')
         else:
             optimal_community_list.append('non-optimal')
-            
-    return(pd.DataFrame({'idx': idx, 'threshold': threshold_data, 'mean_dist': dataset_community_dist_data, 'optimal_community': optimal_community_list}))
 
+    optimal_community_list = np.array(optimal_community_list)
+    optimal_community_list = optimal_community_list[relevant_idx]
+    optimal_community_list = list(optimal_community_list)
+
+    idx = np.array(idx)
+    idx = idx[relevant_idx]
+    idx = list(idx)
+
+    ret = pd.DataFrame({'idx': idx, 'threshold': threshold_data, 'mean_dist': dataset_community_dist_data, 'optimal_community': optimal_community_list})
+            
+    print(ret)
+    return(ret)
            
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
