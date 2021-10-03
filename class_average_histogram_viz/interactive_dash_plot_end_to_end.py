@@ -255,9 +255,9 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
 
         #clear directory 
-        #files = glob.glob('%s/*' % tmp_dir)
-        #for f in files:
-        #    os.remove(f)
+        files = glob.glob('%s/*' % tmp_dir)
+        for f in files:
+            os.remove(f)
 
         mrc_copy = '%s/%s' % (tmp_dir,mrc_filename)
         with open(mrc_copy, 'wb') as f:
@@ -277,7 +277,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             command = "python3 %s/gen_dist_matrix.py --mrc_file %s --star_file %s --mirror %d" % (python_program_filepath, mrc_copy, metadata_copy, mirror_value)
 
         print('Running %s' % command)
-        #subprocess.call(command, shell=True)
+        subprocess.call(command, shell=True)
         print('Finished Running %s' % command)
 
 
@@ -294,7 +294,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             command = "python3 %s/plot_clusters.py --input_dir %s" % (python_program_filepath, output_data_dir)
 
         print('Running %s' % command)
-        #subprocess.call(command, shell=True)
+        subprocess.call(command, shell=True)
         print('Finished Running %s' % command)
 
         return html.Div([html.H5('Completed Data Processing'),html.Hr()])
