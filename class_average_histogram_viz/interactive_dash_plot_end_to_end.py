@@ -272,9 +272,9 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
 
 
         if sf_value is not None:
-            command = "python3 %s/gen_dist_matrix.py --mrc_file %s --star_file %s --mirror %d --scale_factor %f" % (python_program_filepath, mrc_copy, metadata_copy, mirror_value, sf_value)
+            command = "python3 %s/gen_dist_matrix.py --mrc_file %s --metadata_file %s --mirror %d --scale_factor %f" % (python_program_filepath, mrc_copy, metadata_copy, mirror_value, sf_value)
         else:
-            command = "python3 %s/gen_dist_matrix.py --mrc_file %s --star_file %s --mirror %d" % (python_program_filepath, mrc_copy, metadata_copy, mirror_value)
+            command = "python3 %s/gen_dist_matrix.py --mrc_file %s --metadata_file %s --mirror %d" % (python_program_filepath, mrc_copy, metadata_copy, mirror_value)
 
         print('Running %s' % command)
         subprocess.call(command, shell=True)
