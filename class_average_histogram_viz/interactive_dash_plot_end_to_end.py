@@ -251,7 +251,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         content_type, content_string = mrc_contents.split(',')
         mrc_decoded = base64.b64decode(content_string)
 
-        tmp_dir = '/home_local/landeradmin/dash_tmp_storage'
+        tmp_dir = '/tmp/dash_tmp_storage'
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
 
         #clear directory 
@@ -309,7 +309,7 @@ def update_cluster_num_options(n_clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     
     if 'viz-submit-val' in changed_id:
-        tmp_dir = '/home_local/landeradmin/dash_tmp_storage'
+        tmp_dir = '/tmp/dash_tmp_storage'
         hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
         cluster_nums = sorted(hist_data_dict['edge'][0].keys())
         lst = [{'label': i, 'value': i} for i in cluster_nums]
@@ -326,7 +326,7 @@ def update_edge_corr_options(n_clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
     if 'viz-submit-val' in changed_id:
-        tmp_dir = '/home_local/landeradmin/dash_tmp_storage'
+        tmp_dir = '/tmp/dash_tmp_storage'
         hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
         edge_corr_keys = sorted(hist_data_dict.keys())
         lst = [{'label': i, 'value': i} for i in edge_corr_keys]
@@ -348,7 +348,7 @@ def func(n_clicks, cluster_num):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
     if 'btn_image' in changed_id:
-        tmp_dir = '/home_local/landeradmin/dash_tmp_storage'
+        tmp_dir = '/tmp/dash_tmp_storage'
         hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
         path_to_mrc = '%s/class_average_panel_plots/cluster_%d.mrc' % (output_data_dir, cluster_num)
 
@@ -364,7 +364,7 @@ def func(n_clicks, cluster_num):
      dash.dependencies.Input('edge-corr', 'value')])
 def update_scatter(cluster_num, edge_corr_str):
                
-    tmp_dir = '/home_local/landeradmin/dash_tmp_storage'                 
+    tmp_dir = '/tmp/dash_tmp_storage'                 
     hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
     dataset_community_dist_df = get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str)
     
@@ -391,7 +391,7 @@ def update_scatter(cluster_num, edge_corr_str):
      dash.dependencies.Input('edge-corr', 'value')])
 def update_bar_chart(clickData, cluster_num, edge_corr_str):
     
-    tmp_dir = '/home_local/landeradmin/dash_tmp_storage'                 
+    tmp_dir = '/tmp/dash_tmp_storage'                 
     hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
 
     idx = clickData['points'][0]['hovertext']
