@@ -252,12 +252,9 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         mrc_decoded = base64.b64decode(content_string)
 
         tmp_dir = '/tmp/dash_tmp_storage'
+        try:
+            shutil.rmtree(tmp_dir)
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
-
-        #clear directory 
-        files = glob.glob('%s/*' % tmp_dir)
-        for f in files:
-            os.remove(f)
 
         mrc_copy = '%s/%s' % (tmp_dir,mrc_filename)
         with open(mrc_copy, 'wb') as f:
