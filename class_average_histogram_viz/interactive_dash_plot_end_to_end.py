@@ -11,7 +11,7 @@ import numpy as np
 import io
 import subprocess 
 import os
-import glob
+import shutil 
 
 python_program_filepath = '/home_local/landeradmin/class_average_clustering/class_average_clustering' #path to where python programs are located. needs to be updated depending on where your programs are located
 
@@ -252,8 +252,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         mrc_decoded = base64.b64decode(content_string)
 
         tmp_dir = '/tmp/dash_tmp_storage'
-        try:
-            shutil.rmtree(tmp_dir)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
 
         mrc_copy = '%s/%s' % (tmp_dir,mrc_filename)
