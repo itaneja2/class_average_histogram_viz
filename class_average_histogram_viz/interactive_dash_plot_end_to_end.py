@@ -116,16 +116,11 @@ app.layout = html.Div([
                 dcc.Input(id='num-clusters-val',type='number',value=None, style={'display':'inline-block', 'border': '1px solid black'}),
             ], style={'display':'inline-block', 'width': '100%'}),
             html.Button('Generate Input Data', id='input-submit-val', n_clicks=0),
-            html.Div(id='container-button-basic',
-             children='Upload data and click button to generate input data'),
+            html.Div(id='container-button-basic'),
+             html.Div(children='Upload data and click button to generate input data'),
             html.Button('Generate Visualization Data', id='viz-submit-val', n_clicks=0),
             html.Div(children='Click button to generate histograms'),
  
-            html.Button("Download Sorted .mrc File Corresponding to Selected Cluster", id="mrc_btn_image", n_clicks=0),
-            dcc.Download(id="download-mrc"),
-            html.Button("Download Sorted .png File Corresponding to Selected Cluster", id="png_btn_image", n_clicks=0),
-            dcc.Download(id="download-png"),
-
             dcc.Dropdown(
                 id='edge-corr',
                 options=[],
@@ -136,11 +131,16 @@ app.layout = html.Div([
                 options=[],
                 value=None
             ),
+            html.Button("Download Sorted .mrc File Corresponding to Selected Cluster", id="mrc_btn_image", n_clicks=0),
+            dcc.Download(id="download-mrc"),
+            html.Button("Download Sorted .png File Corresponding to Selected Cluster", id="png_btn_image", n_clicks=0),
+            dcc.Download(id="download-png"),
+
             dcc.RadioItems(
                 id='avg-or-median',
                 options=[
                     {'label': 'Display Median Image', 'value': 'median'},
-                    {'label': 'Dispaly Average Image', 'value': 'average'}
+                    {'label': 'Display Average Image', 'value': 'average'}
                 ],
                 value='average',
                 labelStyle={'display': 'inline-block'}
