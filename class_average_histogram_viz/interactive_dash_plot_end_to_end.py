@@ -363,7 +363,7 @@ def func(n_clicks, cluster_num):
             print('%s not found' % path_to_mrc)
 
 @app.callback(
-    dash.dependencies.Output("download-mrc", "data"),
+    dash.dependencies.Output("download-png", "data"),
     dash.dependencies.Input("png_btn_image", "n_clicks"),
     dash.dependencies.Input('cluster-nums', 'value'),
     prevent_initial_call=True,
