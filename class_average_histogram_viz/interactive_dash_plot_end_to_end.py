@@ -117,15 +117,14 @@ app.layout = html.Div([
             ], style={'display':'inline-block', 'width': '100%'}),
             html.Button('Generate Input Data', id='input-submit-val', n_clicks=0),
             html.Div(id='container-button-basic',
-             children='Upload data and click button'),
+             children='Upload data and click button to generate input data'),
             html.Button('Generate Visualization Data', id='viz-submit-val', n_clicks=0),
-            
-            html.Button("Download Sorted .mrc File Corresponding to Selected Cluster", id="btn_image", n_clicks=0),
+            html.Div(children='Click button to generate histograms'),
+ 
+            html.Button("Download Sorted .mrc File Corresponding to Selected Cluster", id="mrc_btn_image", n_clicks=0),
             dcc.Download(id="download-mrc"),
-
-
-
-
+            html.Button("Download Sorted .png File Corresponding to Selected Cluster", id="png_btn_image", n_clicks=0),
+            dcc.Download(id="download-png"),
 
             dcc.Dropdown(
                 id='edge-corr',
@@ -136,7 +135,17 @@ app.layout = html.Div([
                 id='cluster-nums',
                 options=[],
                 value=None
+            ),
+            dcc.RadioItems(
+                id='avg-or-median',
+                options=[
+                    {'label': 'Display Median Image', 'value': 'median'},
+                    {'label': 'Dispaly Average Image', 'value': 'average'}
+                ],
+                value='average',
+                labelStyle={'display': 'inline-block'}
             )
+
         ],
         style={'width': '49%', 'display': 'inline-block'})
         
@@ -335,7 +344,7 @@ def update_edge_corr_options(n_clicks):
 
 @app.callback(
     dash.dependencies.Output("download-mrc", "data"),
-    dash.dependencies.Input("btn_image", "n_clicks"),
+    dash.dependencies.Input("mrc_btn_image", "n_clicks"),
     dash.dependencies.Input('cluster-nums', 'value'),
     prevent_initial_call=True,
 )
@@ -343,7 +352,7 @@ def func(n_clicks, cluster_num):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
-    if 'btn_image' in changed_id:
+    if 'mrc_btn_image' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
         hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
         path_to_mrc = '%s/class_average_panel_plots/cluster_%d.mrc' % (output_data_dir, cluster_num)
@@ -352,6 +361,27 @@ def func(n_clicks, cluster_num):
             return send_file(path_to_mrc)
         else:
             print('%s not found' % path_to_mrc)
+
+@app.callback(
+    dash.dependencies.Output("download-mrc", "data"),
+    dash.dependencies.Input("png_btn_image", "n_clicks"),
+    dash.dependencies.Input('cluster-nums', 'value'),
+    prevent_initial_call=True,
+)
+def func(n_clicks, cluster_num):
+
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+
+    if 'png_btn_image' in changed_id:
+        tmp_dir = '/tmp/dash_tmp_storage'
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+        path_to_png = '%s/class_average_panel_plots/cluster_%d.png' % (output_data_dir, cluster_num)
+
+        if Path(path_to_png).is_file():
+            return send_file(path_to_png)
+        else:
+            print('%s not found' % path_to_png)
+
     
 
 @app.callback(
@@ -384,8 +414,9 @@ def update_scatter(cluster_num, edge_corr_str):
     dash.dependencies.Output('bar-chart', 'figure'),
     [dash.dependencies.Input('sil-scatter', 'clickData'),
      dash.dependencies.Input('cluster-nums', 'value'),
-     dash.dependencies.Input('edge-corr', 'value')])
-def update_bar_chart(clickData, cluster_num, edge_corr_str):
+     dash.dependencies.Input('edge-corr', 'value'),
+     dash.dependencies.Input('avg-or-median', 'value')])
+def update_bar_chart(clickData, cluster_num, edge_corr_str, avg_median_str):
     
     tmp_dir = '/tmp/dash_tmp_storage'                 
     hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
@@ -413,6 +444,13 @@ def update_bar_chart(clickData, cluster_num, edge_corr_str):
     for img in cluster_ref_img:
         ref_img_list.append('%s/%s.png' % (ref_img_loc, str(int(img))))
     
+    average_img_wrt_ref_loc = '%s/histogram_plots/average_image_wrt_ref/%s/cluster_%s' % (output_data_dir, edge_corr_str, str(int(cluster_num)))
+
+    average_img_wrt_ref_list = []
+    for i in range(0,len(ref_img_list)):
+        average_img_wrt_ref_list.append('%s/%s_%s.png' % (average_img_wrt_ref_loc, str(int(idx)), str(i)))
+
+    
     plot_title = 'Maximum Community Weight = %s' % str(cluster_max_community_weight) 
 
     fig = px.bar(plot_df, x='x', y='y',
@@ -420,8 +458,14 @@ def update_bar_chart(clickData, cluster_num, edge_corr_str):
 
     fig.update_layout(yaxis_range=[0,np.max(y)*2], title = plot_title,
                       yaxis_title = 'Percentage of Particles in Cluster %d' % cluster_num, xaxis_title = 'Community Number')
+
     # add images
-    for i,src,yy in zip(range(0,len(ref_img_list)),ref_img_list,y):
+    if avg_median_str == 'median':
+        img_display_list = ref_img_list
+    else:
+        img_display_list = average_img_wrt_ref_list
+
+    for i,src,yy in zip(range(0,len(img_display_list)),img_display_list,y):
         logo = base64.b64encode(open(src, 'rb').read())
         fig.add_layout_image(
             source='data:image/png;base64,{}'.format(logo.decode()),
@@ -434,6 +478,7 @@ def update_bar_chart(clickData, cluster_num, edge_corr_str):
             sizex=.5,
             sizey=.5,
         )
+
     
     return(fig)
 
