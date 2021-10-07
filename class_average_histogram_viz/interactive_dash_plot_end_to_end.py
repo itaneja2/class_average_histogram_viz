@@ -15,6 +15,7 @@ import shutil
 from zipfile import ZipFile
 import glob
 
+#UPDATE THIS DEPENDING ON ITS LOCATION
 python_program_filepath = '/home_local/landeradmin/class_average_clustering/class_average_clustering' #path to where python programs are located. needs to be updated depending on where your programs are located
 
 
