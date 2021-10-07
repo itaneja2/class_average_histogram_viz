@@ -92,7 +92,7 @@ app.layout = html.Div([
                 id='upload-metadata-data',
                 children=html.Div([
                     'Drag and Drop or ',
-                    html.A('Select *.star/*.cs File')
+                    html.A('Select *.star/*.cs OR *.star.zip/*.cs.zip File')
                 ]),
                style={
                     'width': '100%',
