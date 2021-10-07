@@ -12,6 +12,8 @@ import io
 import subprocess 
 import os
 import shutil 
+from zipfile import ZipFile
+import glob
 
 python_program_filepath = '/home_local/landeradmin/class_average_clustering/class_average_clustering' #path to where python programs are located. needs to be updated depending on where your programs are located
 
@@ -168,12 +170,7 @@ app.layout = html.Div([
 
 
 def get_mrc_upload_output(contents, filename):
-        
-    
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
-    
-    
+            
     if '.mrc' not in filename:
         return html.Div([
             'File must be of type *.mrc'
@@ -186,14 +183,8 @@ def get_mrc_upload_output(contents, filename):
     ])
 
 
-
 def get_metadata_upload_output(contents, filename):
-        
-    
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
-    
-    
+         
     if ('.star' not in filename) and ('.cs' not in filename):
         return html.Div([
             'File must be of type *.star/*.cs'
@@ -268,8 +259,33 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         with open(mrc_copy, 'wb') as f:
             f.write(mrc_decoded)
 
-        content_type, content_string = metadata_contents.split(',')
-        metadata_decoded = base64.b64decode(content_string)
+
+        if '.zip' in metadata_filename:
+            content_type, content_string = metadata_contents.split(',')
+            metadata_decoded = base64.b64decode(content_string)
+            zip_str = io.BytesIO(metadata_decoded)
+
+            with ZipFile(zip_str) as zf:
+                zf.extractall(tmp_dir)
+            
+            files_in_tmp_dir = glob.glob("%s/*" % tmp_dir)
+
+            metadata_copy=''
+            for f in files_in_tmp_dir:
+                if '.star' in f:
+                    metadata_copy = f
+                elif '.cs' in f:
+                    metadata_copy = f
+            if metadata_copy == '':
+                print('.star or .cs file not found')
+        else:
+            content_type, content_string = metadata_contents.split(',')
+            metadata_decoded = base64.b64decode(content_string)
+
+            metadata_copy = '%s/%s' % (tmp_dir,metadata_filename)
+            with open(metadata_copy, 'wb') as f:
+                f.write(metadata_decoded)
+
 
         metadata_copy = '%s/%s' % (tmp_dir,metadata_filename)
         with open(metadata_copy, 'wb') as f:
