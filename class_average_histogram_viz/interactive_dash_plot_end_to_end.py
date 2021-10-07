@@ -272,9 +272,9 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
 
             metadata_copy=''
             for f in files_in_tmp_dir:
-                if '.star' in f:
+                if '.star' in f and '.zip' not in f:
                     metadata_copy = f
-                elif '.cs' in f:
+                elif '.cs' in f and '.zip' not in f:
                     metadata_copy = f
             if metadata_copy == '':
                 print('.star or .cs file not found')
