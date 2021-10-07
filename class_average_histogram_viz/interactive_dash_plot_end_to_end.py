@@ -274,8 +274,6 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             for f in files_in_tmp_dir:
                 if ('.star' in f) and ('.zip' not in f):
                     metadata_copy = f
-                    print('here')
-                    print(f)
                 elif ('.cs' in f) and ('.zip' not in f):
                     metadata_copy = f
             if metadata_copy == '':
@@ -287,12 +285,6 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             metadata_copy = '%s/%s' % (tmp_dir,metadata_filename)
             with open(metadata_copy, 'wb') as f:
                 f.write(metadata_decoded)
-
-
-        metadata_copy = '%s/%s' % (tmp_dir,metadata_filename)
-        with open(metadata_copy, 'wb') as f:
-            f.write(metadata_decoded)
-
 
         if sf_value is not None:
             command = "python3 %s/gen_dist_matrix.py --mrc_file %s --metadata_file %s --mirror %d --scale_factor %f" % (python_program_filepath, mrc_copy, metadata_copy, mirror_value, sf_value)
