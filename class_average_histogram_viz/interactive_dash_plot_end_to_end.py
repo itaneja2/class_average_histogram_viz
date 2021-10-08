@@ -468,7 +468,7 @@ def update_bar_chart(clickData, cluster_num, edge_corr_str, avg_median_str):
                 hover_data=['ref_img', 'all_img'])
 
     fig.update_layout(yaxis_range=[0,np.max(y)*2], title = plot_title,
-                      yaxis_title = 'Percentage of Particles in Cluster %d' % cluster_num, xaxis_title = 'Community Number')
+                      yaxis_title = 'Fraction of Particles in Cluster %d' % cluster_num, xaxis_title = 'Community Number')
 
     # add images
     if avg_median_str == 'median':
