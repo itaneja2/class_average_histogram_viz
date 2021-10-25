@@ -121,6 +121,12 @@ app.layout = html.Div([
             html.Button('Generate Input Data', id='input-submit-val', n_clicks=0),
             html.Div(id='container-button-basic'),
              html.Div(children='Upload data and click button to generate input data'),
+            #html.Div(children='Select output data folder'),
+            #dcc.Dropdown(
+            #    id='output-folder',
+            #    options=[],
+            #    value=None,
+            #), 
             html.Button('Generate Visualization Data', id='viz-submit-val', n_clicks=0),
             html.Div(children='Click button to generate histograms'),
  
@@ -247,6 +253,7 @@ def update_metadata_output(contents, filename):
 def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metadata_filename, mirror_value, sf_value, num_clusters_value):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    mrc_filename_wo_extension = mrc_filename.split('.')[0]
 
     if 'input-submit-val' in changed_id:
         content_type, content_string = mrc_contents.split(',')
@@ -301,10 +308,12 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         print('Finished Running %s' % command)
 
 
-        output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
-        output_data_dir = sorted(output_data_dir, key = os.path.getmtime)
+        all_output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
+        for o in all_output_data_dir:
+            if mrc_filename_wo_extension in o:
+               output_data_dir = o 
+               break 
 
-        output_data_dir = output_data_dir[-1]
         print("Fetching data from directory %s" % output_data_dir)
 
         if num_clusters_value is not None:
@@ -318,6 +327,22 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
 
         return html.Div([html.H5('Completed Data Processing'),html.Hr()])
 
+'''@app.callback(
+    dash.dependencies.Output('output-folder', 'options'),
+    dash.dependencies.Input('viz-submit-val', 'n_clicks'))
+def update_output_folder_options(n_clicks):
+
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+
+    if 'viz-submit-val' in changed_id:
+        tmp_dir = '/tmp/dash_tmp_storage'
+
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+        edge_corr_keys = sorted(hist_data_dict.keys())
+        lst = [{'label': i, 'value': i} for i in edge_corr_keys]
+        return lst
+    else:
+        return []  '''
 
 
 @app.callback(
@@ -329,6 +354,9 @@ def update_cluster_num_options(n_clicks):
     
     if 'viz-submit-val' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
+        output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
+        output_data_dir = sorted(output_data_dir, key = os.path.getmtime)
+
         hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
         cluster_nums = sorted(hist_data_dict['edge'][0].keys())
         lst = [{'label': i, 'value': i} for i in cluster_nums]
