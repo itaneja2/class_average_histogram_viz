@@ -413,7 +413,7 @@ def func(n_clicks, cluster_num, mrc_filename):
     [dash.dependencies.Input('cluster-nums', 'value'),
      dash.dependencies.Input('edge-corr', 'value'),
      dash.dependencies.Input('upload-mrc-data', 'filename')])
-def update_scatter(n_clicks, cluster_num, edge_corr_str, mrc_filename):
+def update_scatter(cluster_num, edge_corr_str, mrc_filename):
     
     if cluster_num and edge_corr_str:
 
