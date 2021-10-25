@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import io
 import subprocess 
-import os
+import os, time
 import shutil 
 from zipfile import ZipFile
 import glob
@@ -253,7 +253,10 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         mrc_decoded = base64.b64decode(content_string)
 
         tmp_dir = '/tmp/dash_tmp_storage'
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+        tmp_dir_info = os.stat(tmp_dir)
+        time_delta_in_days = (time.time_ns()*1e-6 - tmp_dir_info.st_atime*1e3)*1.15741e-8
+        #if time_delta_in_days >= 1: #only delete if directory was made more than 20 minutes ago
+            #shutil.rmtree(tmp_dir, ignore_errors=True)
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
 
         mrc_copy = '%s/%s' % (tmp_dir,mrc_filename)
