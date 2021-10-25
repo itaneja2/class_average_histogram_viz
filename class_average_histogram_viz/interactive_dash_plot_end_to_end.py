@@ -280,15 +280,9 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             with ZipFile(zip_str) as zf:
                 zf.extractall(tmp_dir)
             
-            files_in_tmp_dir = glob.glob("%s/*" % tmp_dir)
+            metadata_copy = '%s/%s' % (tmp_dir, metadata_filename.replace('.zip',''))
 
-            metadata_copy=''
-            for f in files_in_tmp_dir:
-                if ('.star' in f) and ('.zip' not in f):
-                    metadata_copy = f
-                elif ('.cs' in f) and ('.zip' not in f):
-                    metadata_copy = f
-            if metadata_copy == '':
+            if Path(metadata_copy).exists():
                 print('.star or .cs file not found')
         else:
             content_type, content_string = metadata_contents.split(',')
