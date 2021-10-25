@@ -120,7 +120,7 @@ app.layout = html.Div([
             ], style={'display':'inline-block', 'width': '100%'}),
             html.Button('Generate Input Data', id='input-submit-val', n_clicks=0),
             html.Div(id='container-button-basic'),
-             html.Div(children='Upload data and click button to generate input data'),
+            html.Div(children='Upload data and click button to generate input data'),
             #html.Div(children='Select output data folder'),
             #dcc.Dropdown(
             #    id='output-folder',
@@ -204,13 +204,14 @@ def get_metadata_upload_output(contents, filename):
     ])
     
 
-def get_hist_dict(tmp_dir):    
+def get_hist_dict(tmp_dir, mrc_filename):    
 
-    output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
-
-    if len(output_data_dir) > 1:
-        print('Error: multiple directories should not exist here')
-    output_data_dir = output_data_dir[0]  
+    mrc_filename_wo_extension = mrc_filename.split('.')[0]
+    all_output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
+    for o in all_output_data_dir:
+        if mrc_filename_wo_extension in o:
+           output_data_dir = o 
+           break 
                             
     hist_data_path = '%s/histogram_plots/raw_data/hist_data.pkl' % output_data_dir
 
@@ -260,11 +261,17 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
         mrc_decoded = base64.b64decode(content_string)
 
         tmp_dir = '/tmp/dash_tmp_storage'
-        #if os.path.isdir(tmp_dir):
-            #tmp_dir_info = os.stat(tmp_dir)
-            #time_delta_in_days = (time.time_ns()*1e-6 - tmp_dir_info.st_atime*1e3)*1.15741e-8
-            #if time_delta_in_days >= 1: #only delete if directory was made more than 20 minutes ago
-                #shutil.rmtree(tmp_dir, ignore_errors=True)
+        #delete old contents in this folder
+        if os.path.isdir(tmp_dir):
+            all_files_and_folders =['%s/%s' (tmp_dir,x) for x in os.listdir(tmp_dir)]
+            for f in all_files_and_folders:
+                f_info = os.stat(f)
+                time_delta_in_days = (time.time_ns()*1e-6 - f_info.st_atime*1e3)*1.15741e-8
+                if time_delta_in_days >= 0: #only delete if directory was made more than 1 week ago
+                    if os.path.isdir(f):
+                        shutil.rmtree(f, ignore_errors=True)
+                    else:
+                        os.remove(f)
         Path(tmp_dir).mkdir(parents=True, exist_ok=True)
 
         mrc_copy = '%s/%s' % (tmp_dir,mrc_filename)
@@ -330,28 +337,26 @@ def update_output_folder_options(n_clicks):
 
     if 'viz-submit-val' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
+        output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
+        output_data_dir = sorted(output_data_dir, key = os.path.getmtime)
 
-        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
-        edge_corr_keys = sorted(hist_data_dict.keys())
-        lst = [{'label': i, 'value': i} for i in edge_corr_keys]
+        lst = [{'label': i, 'value': i} for i in output_data_dir]
         return lst
     else:
-        return []  '''
+        return []'''
 
 
 @app.callback(
     dash.dependencies.Output('cluster-nums', 'options'),
-    dash.dependencies.Input('viz-submit-val', 'n_clicks'))
-def update_cluster_num_options(n_clicks):
+    dash.dependencies.Input('viz-submit-val', 'n_clicks'),
+    dash.dependencies.Input('upload-mrc-data', 'filename'))
+def update_cluster_num_options(n_clicks, mrc_filename):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     
     if 'viz-submit-val' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
-        output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
-        output_data_dir = sorted(output_data_dir, key = os.path.getmtime)
-
-        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
         cluster_nums = sorted(hist_data_dict['edge'][0].keys())
         lst = [{'label': i, 'value': i} for i in cluster_nums]
         return lst
@@ -361,14 +366,15 @@ def update_cluster_num_options(n_clicks):
     
 @app.callback(
     dash.dependencies.Output('edge-corr', 'options'),
-    dash.dependencies.Input('viz-submit-val', 'n_clicks'))
-def update_edge_corr_options(n_clicks):
+    dash.dependencies.Input('viz-submit-val', 'n_clicks'),
+    dash.dependencies.Input('upload-mrc-data', 'filename'))
+def update_edge_corr_options(n_clicks, mrc_filename):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
     if 'viz-submit-val' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
-        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
         edge_corr_keys = sorted(hist_data_dict.keys())
         lst = [{'label': i, 'value': i} for i in edge_corr_keys]
         return lst
@@ -382,15 +388,16 @@ def update_edge_corr_options(n_clicks):
     dash.dependencies.Output("download-mrc", "data"),
     dash.dependencies.Input("mrc_btn_image", "n_clicks"),
     dash.dependencies.Input('cluster-nums', 'value'),
+    dash.dependencies.Input('upload-mrc-data', 'filename'),
     prevent_initial_call=True,
 )
-def func(n_clicks, cluster_num):
+def func(n_clicks, cluster_num, mrc_filename):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
     if 'mrc_btn_image' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
-        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
         path_to_mrc = '%s/class_average_panel_plots/cluster_%d.mrc' % (output_data_dir, cluster_num)
 
         if Path(path_to_mrc).is_file():
@@ -402,15 +409,16 @@ def func(n_clicks, cluster_num):
     dash.dependencies.Output("download-png", "data"),
     dash.dependencies.Input("png_btn_image", "n_clicks"),
     dash.dependencies.Input('cluster-nums', 'value'),
+    dash.dependencies.Input('upload-mrc-data', 'filename'),
     prevent_initial_call=True,
 )
-def func(n_clicks, cluster_num):
+def func(n_clicks, cluster_num, mrc_filename):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
     if 'png_btn_image' in changed_id:
         tmp_dir = '/tmp/dash_tmp_storage'
-        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
         path_to_png = '%s/class_average_panel_plots/cluster_%d.png' % (output_data_dir, cluster_num)
 
         if Path(path_to_png).is_file():
@@ -423,11 +431,12 @@ def func(n_clicks, cluster_num):
 @app.callback(
     dash.dependencies.Output('sil-scatter', 'figure'),
     [dash.dependencies.Input('cluster-nums', 'value'),
-     dash.dependencies.Input('edge-corr', 'value')])
-def update_scatter(cluster_num, edge_corr_str):
+     dash.dependencies.Input('edge-corr', 'value'),
+     dash.dependencies.Input('upload-mrc-data', 'filename')])
+def update_scatter(cluster_num, edge_corr_str, mrc_filename):
                
     tmp_dir = '/tmp/dash_tmp_storage'                 
-    hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+    hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
     dataset_community_dist_df = get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str)
     
     fig = px.scatter(x=dataset_community_dist_df['threshold'],
@@ -451,11 +460,12 @@ def update_scatter(cluster_num, edge_corr_str):
     [dash.dependencies.Input('sil-scatter', 'clickData'),
      dash.dependencies.Input('cluster-nums', 'value'),
      dash.dependencies.Input('edge-corr', 'value'),
-     dash.dependencies.Input('avg-or-median', 'value')])
-def update_bar_chart(clickData, cluster_num, edge_corr_str, avg_median_str):
+     dash.dependencies.Input('avg-or-median', 'value'),
+     dash.dependencies.Input('upload-mrc-data', 'filename')])
+def update_bar_chart(clickData, cluster_num, edge_corr_str, avg_median_str, mrc_filename):
     
     tmp_dir = '/tmp/dash_tmp_storage'                 
-    hist_data_dict, output_data_dir = get_hist_dict(tmp_dir)
+    hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
 
     idx = clickData['points'][0]['hovertext']
     
