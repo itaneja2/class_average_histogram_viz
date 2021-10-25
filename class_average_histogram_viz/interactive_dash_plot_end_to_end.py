@@ -121,12 +121,6 @@ app.layout = html.Div([
             html.Button('Generate Input Data', id='input-submit-val', n_clicks=0),
             html.Div(id='container-button-basic'),
             html.Div(children='Upload data and click button to generate input data'),
-            #html.Div(children='Select output data folder'),
-            #dcc.Dropdown(
-            #    id='output-folder',
-            #    options=[],
-            #    value=None,
-            #), 
             html.Button('Generate Visualization Data', id='viz-submit-val', n_clicks=0),
             html.Div(children='Click button to generate histograms'),
  
@@ -206,13 +200,14 @@ def get_metadata_upload_output(contents, filename):
 
 def get_hist_dict(tmp_dir, mrc_filename):    
 
+    output_data_dir = ''
     mrc_filename_wo_extension = mrc_filename.split('.')[0]
     all_output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
     for o in all_output_data_dir:
         if mrc_filename_wo_extension in o:
            output_data_dir = o 
            break 
-                            
+
     hist_data_path = '%s/histogram_plots/raw_data/hist_data.pkl' % output_data_dir
 
     print(hist_data_path)
@@ -268,7 +263,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             for f in all_files_and_folders:
                 f_info = os.stat(f)
                 time_delta_in_days = (time.time_ns()*1e-6 - f_info.st_atime*1e3)*1.15741e-8
-                if time_delta_in_days >= 0: #only delete if directory was made more than 1 week ago
+                if time_delta_in_days >= 7: #only delete if directory was made more than 1 week ago
                     if os.path.isdir(f):
                         shutil.rmtree(f, ignore_errors=True)
                     else:
@@ -329,22 +324,6 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
 
         return html.Div([html.H5('Completed Data Processing'),html.Hr()])
 
-'''@app.callback(
-    dash.dependencies.Output('output-folder', 'options'),
-    dash.dependencies.Input('viz-submit-val', 'n_clicks'))
-def update_output_folder_options(n_clicks):
-
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-
-    if 'viz-submit-val' in changed_id:
-        tmp_dir = '/tmp/dash_tmp_storage'
-        output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
-        output_data_dir = sorted(output_data_dir, key = os.path.getmtime)
-
-        lst = [{'label': i, 'value': i} for i in output_data_dir]
-        return lst
-    else:
-        return []'''
 
 
 @app.callback(
@@ -434,26 +413,28 @@ def func(n_clicks, cluster_num, mrc_filename):
     [dash.dependencies.Input('cluster-nums', 'value'),
      dash.dependencies.Input('edge-corr', 'value'),
      dash.dependencies.Input('upload-mrc-data', 'filename')])
-def update_scatter(cluster_num, edge_corr_str, mrc_filename):
-               
-    tmp_dir = '/tmp/dash_tmp_storage'                 
-    hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
-    dataset_community_dist_df = get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str)
+def update_scatter(n_clicks, cluster_num, edge_corr_str, mrc_filename):
     
-    fig = px.scatter(x=dataset_community_dist_df['threshold'],
-            y=dataset_community_dist_df['mean_dist'],
-            color=dataset_community_dist_df['optimal_community'],
-            hover_name=dataset_community_dist_df['idx']
-            )
+    if cluster_num and edge_corr_str:
 
-    fig.update_traces(customdata=dataset_community_dist_df['idx'])
+        tmp_dir = '/tmp/dash_tmp_storage'                 
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
+        dataset_community_dist_df = get_dataset_community_dist_df(hist_data_dict, cluster_num, edge_corr_str)
+        
+        fig = px.scatter(x=dataset_community_dist_df['threshold'],
+                y=dataset_community_dist_df['mean_dist'],
+                color=dataset_community_dist_df['optimal_community'],
+                hover_name=dataset_community_dist_df['idx']
+                )
 
-    fig.update_layout(yaxis_title = 'Mean Distance',
-                      xaxis_title = 'Distance Threshold',
-                      hovermode='closest',
-                      margin={'l': 0, 'b': 10, 't': 40, 'r': 0})
+        fig.update_traces(customdata=dataset_community_dist_df['idx'])
 
-    return(fig)
+        fig.update_layout(yaxis_title = 'Mean Distance',
+                          xaxis_title = 'Distance Threshold',
+                          hovermode='closest',
+                          margin={'l': 0, 'b': 10, 't': 40, 'r': 0})
+
+        return(fig)
 
 
 @app.callback(
@@ -465,69 +446,71 @@ def update_scatter(cluster_num, edge_corr_str, mrc_filename):
      dash.dependencies.Input('upload-mrc-data', 'filename')])
 def update_bar_chart(clickData, cluster_num, edge_corr_str, avg_median_str, mrc_filename):
     
-    tmp_dir = '/tmp/dash_tmp_storage'                 
-    hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
+    if cluster_num and edge_corr_str: 
 
-    idx = clickData['points'][0]['hovertext']
-    
-    cluster_community = hist_data_dict[edge_corr_str][0][cluster_num][idx]
-    cluster_community_count = hist_data_dict[edge_corr_str][3][cluster_num][idx]
-    cluster_ref_img = hist_data_dict[edge_corr_str][4][cluster_num][idx]
-    cluster_max_community_weight = hist_data_dict[edge_corr_str][5][cluster_num][idx]
-    
- 
-    y=cluster_community_count/(np.sum(cluster_community_count))
-    x=np.linspace(1,len(y),len(y))
+        tmp_dir = '/tmp/dash_tmp_storage'                 
+        hist_data_dict, output_data_dir = get_hist_dict(tmp_dir, mrc_filename)
 
-    all_imgs_cluster_c = []
-    for community_img in cluster_community:
-        all_imgs_cluster_c.append("-".join(str(x) for x in sorted(community_img)))
-    
-    plot_df = pd.DataFrame({'x': x, 'y': y, 'ref_img': cluster_ref_img, 'all_img': all_imgs_cluster_c})
+        idx = clickData['points'][0]['hovertext']
+        
+        cluster_community = hist_data_dict[edge_corr_str][0][cluster_num][idx]
+        cluster_community_count = hist_data_dict[edge_corr_str][3][cluster_num][idx]
+        cluster_ref_img = hist_data_dict[edge_corr_str][4][cluster_num][idx]
+        cluster_max_community_weight = hist_data_dict[edge_corr_str][5][cluster_num][idx]
+        
+     
+        y=cluster_community_count/(np.sum(cluster_community_count))
+        x=np.linspace(1,len(y),len(y))
 
-    ref_img_loc = '%s/histogram_plots/ref_img/%s/cluster_%s' % (output_data_dir, edge_corr_str, str(int(cluster_num)))
-    
-    ref_img_list = []
-    for img in cluster_ref_img:
-        ref_img_list.append('%s/%s.png' % (ref_img_loc, str(int(img))))
-    
-    average_img_wrt_ref_loc = '%s/histogram_plots/average_image_wrt_ref/%s/cluster_%s' % (output_data_dir, edge_corr_str, str(int(cluster_num)))
+        all_imgs_cluster_c = []
+        for community_img in cluster_community:
+            all_imgs_cluster_c.append("-".join(str(x) for x in sorted(community_img)))
+        
+        plot_df = pd.DataFrame({'x': x, 'y': y, 'ref_img': cluster_ref_img, 'all_img': all_imgs_cluster_c})
 
-    average_img_wrt_ref_list = []
-    for i in range(0,len(ref_img_list)):
-        average_img_wrt_ref_list.append('%s/%s_%s.png' % (average_img_wrt_ref_loc, str(int(idx)), str(i)))
+        ref_img_loc = '%s/histogram_plots/ref_img/%s/cluster_%s' % (output_data_dir, edge_corr_str, str(int(cluster_num)))
+        
+        ref_img_list = []
+        for img in cluster_ref_img:
+            ref_img_list.append('%s/%s.png' % (ref_img_loc, str(int(img))))
+        
+        average_img_wrt_ref_loc = '%s/histogram_plots/average_image_wrt_ref/%s/cluster_%s' % (output_data_dir, edge_corr_str, str(int(cluster_num)))
 
-    
-    plot_title = 'Maximum Community Weight = %s' % str(cluster_max_community_weight) 
+        average_img_wrt_ref_list = []
+        for i in range(0,len(ref_img_list)):
+            average_img_wrt_ref_list.append('%s/%s_%s.png' % (average_img_wrt_ref_loc, str(int(idx)), str(i)))
 
-    fig = px.bar(plot_df, x='x', y='y',
-                hover_data=['ref_img', 'all_img'])
+        
+        plot_title = 'Maximum Community Weight = %s' % str(cluster_max_community_weight) 
 
-    fig.update_layout(yaxis_range=[0,np.max(y)*2], title = plot_title,
-                      yaxis_title = 'Fraction of Particles in Cluster %d' % cluster_num, xaxis_title = 'Community Number')
+        fig = px.bar(plot_df, x='x', y='y',
+                    hover_data=['ref_img', 'all_img'])
 
-    # add images
-    if avg_median_str == 'median':
-        img_display_list = ref_img_list
-    else:
-        img_display_list = average_img_wrt_ref_list
+        fig.update_layout(yaxis_range=[0,np.max(y)*2], title = plot_title,
+                          yaxis_title = 'Fraction of Particles in Cluster %d' % cluster_num, xaxis_title = 'Community Number')
 
-    for i,src,yy in zip(range(0,len(img_display_list)),img_display_list,y):
-        logo = base64.b64encode(open(src, 'rb').read())
-        fig.add_layout_image(
-            source='data:image/png;base64,{}'.format(logo.decode()),
-            xref="x",
-            yref="y",
-            x=x[i],
-            y=yy+.02,
-            xanchor="center",
-            yanchor="bottom",
-            sizex=.5,
-            sizey=.5,
-        )
+        # add images
+        if avg_median_str == 'median':
+            img_display_list = ref_img_list
+        else:
+            img_display_list = average_img_wrt_ref_list
 
-    
-    return(fig)
+        for i,src,yy in zip(range(0,len(img_display_list)),img_display_list,y):
+            logo = base64.b64encode(open(src, 'rb').read())
+            fig.add_layout_image(
+                source='data:image/png;base64,{}'.format(logo.decode()),
+                xref="x",
+                yref="y",
+                x=x[i],
+                y=yy+.02,
+                xanchor="center",
+                yanchor="bottom",
+                sizex=.5,
+                sizey=.5,
+            )
+
+        
+        return(fig)
 
 
 
