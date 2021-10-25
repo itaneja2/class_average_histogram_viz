@@ -282,7 +282,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             
             metadata_copy = '%s/%s' % (tmp_dir, metadata_filename.replace('.zip',''))
 
-            if Path(metadata_copy).exists():
+            if Path(metadata_copy).exists() == False:
                 print('.star or .cs file not found')
         else:
             content_type, content_string = metadata_contents.split(',')
