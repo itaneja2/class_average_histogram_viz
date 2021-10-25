@@ -254,16 +254,17 @@ def update_metadata_output(contents, filename):
 def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metadata_filename, mirror_value, sf_value, num_clusters_value):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    mrc_filename_wo_extension = mrc_filename.split('.')[0]
 
     if 'input-submit-val' in changed_id:
+        mrc_filename_wo_extension = mrc_filename.split('.')[0]
+
         content_type, content_string = mrc_contents.split(',')
         mrc_decoded = base64.b64decode(content_string)
 
         tmp_dir = '/tmp/dash_tmp_storage'
         #delete old contents in this folder
         if os.path.isdir(tmp_dir):
-            all_files_and_folders =['%s/%s' (tmp_dir,x) for x in os.listdir(tmp_dir)]
+            all_files_and_folders =['%s/%s' % (tmp_dir,x) for x in os.listdir(tmp_dir)]
             for f in all_files_and_folders:
                 f_info = os.stat(f)
                 time_delta_in_days = (time.time_ns()*1e-6 - f_info.st_atime*1e3)*1.15741e-8
