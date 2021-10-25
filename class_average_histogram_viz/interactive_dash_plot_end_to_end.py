@@ -302,11 +302,10 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
 
 
         output_data_dir = [os.path.join(tmp_dir, item) for item in os.listdir(tmp_dir) if os.path.isdir(os.path.join(tmp_dir, item))]
+        output_data_dir = sorted(output_data_dir, key = os.path.getmtime)
 
-        if len(output_data_dir) > 1:
-            print('Error: multiple directories should not exist here')
-        output_data_dir = output_data_dir[0]
-
+        output_data_dir = output_data_dir[-1]
+        print("Fetching data from directory %s" % output_data_dir)
 
         if num_clusters_value is not None:
             command = "python3 %s/plot_clusters.py --input_dir %s --num_clusters %d" % (python_program_filepath, output_data_dir, num_clusters_value)
