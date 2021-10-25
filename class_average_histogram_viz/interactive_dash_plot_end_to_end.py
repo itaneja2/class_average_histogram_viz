@@ -263,7 +263,7 @@ def update_output(n_clicks, mrc_contents, mrc_filename, metadata_contents, metad
             for f in all_files_and_folders:
                 f_info = os.stat(f)
                 time_delta_in_days = (time.time_ns()*1e-6 - f_info.st_atime*1e3)*1.15741e-8
-                if time_delta_in_days >= 0: #only delete if directory was made more than 1 week ago
+                if time_delta_in_days >= 7: #only delete if directory was made more than 1 week ago
                     if os.path.isdir(f):
                         shutil.rmtree(f, ignore_errors=True)
                     else:
