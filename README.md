@@ -48,7 +48,7 @@ Web application to visualize the relative particle count distributions of distin
 	* `mirror`: Whether or not to run calculations for original class average and its mirror image (defaults to 1). 
 	* `scale_factor`: Factor [between (0,1)] by which to downsample images. By default, this value is 1, so there is no need to update this parameter if you don't want to downsample. 
 	* `num_clusters`: Number of clusters to separate class averages into. By default, this value determines the 'optimal' number of clusters to split the class average into. This is useful to split junk from non-junk class avearges. If there is a minor amount of junk in your class averages, I'd recommend setting this number to 1. 
-	* See [class\_average\_clustering](https://github.com/itaneja2/class_average_histogram_viz) for more information on these parameters. 
+	* See [class\_average\_clustering](https://github.com/itaneja2/class_average_clustering) for more information on these parameters. 
 	
 
 4. Click `Generate Input`. Once complete, you will see text below the button indicating that the data processing is complete. The amount of time this takes to run depends on the size of your input, but generally takes between 2-4 minutes. 
